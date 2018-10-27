@@ -1,0 +1,129 @@
+{% extends 'shop/base.html' %}
+{% load static from staticfiles %}
+{% block linkscript %}
+    <link rel="stylesheet" type="text/css" href="{% static 'market/css/market.css'%}" />
+    <script type="text/javascript" charset="utf-8" src="{% static 'market/js/market.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("[class='subShopping']").click(function () {
+                var a = $(this).attr('ga');
+                {#var b = document.getElementById(a).innerHTML;#}
+                $.ajax({
+                    url: '{% url 'shop:sub' %}',
+                    type: 'GET',
+                    data:{
+                        'product_id':a,
+                    },
+                    success:function (data) {
+                        if (data['error']){
+                            alert(data['error'])
+                        }else {
+                        document.getElementById(a).innerHTML = data['value']
+                        }
+                    }
+                })
+            });
+            $("[class='addShopping']").click(function () {
+                var a = $(this).attr('ga');
+                {#var b = document.getElementById(a).innerHTML;#}
+                $.ajax({
+                    url: '{% url 'shop:add' %}',
+                    type: 'GET',
+                    data:{
+                        'product_id':a,
+                    },
+                    success:function (data) {
+                        if (data['error']){
+                            alert(data['error'])
+                        }else {
+                        document.getElementById(a).innerHTML = data['value']
+                        }
+                    }
+                })
+            })
+
+        })
+    </script>
+{% endblock linkscript %}
+
+
+
+{% block base %}
+<div id="market">
+    <aside>
+        <menu>
+            <ul>
+                {% for item in foodtypes %}
+                <li>
+                    <span class="yellowSlide"></span>
+                    <a href="/market/{{item.typeid}}/0/0/">{{item.typename}}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </menu>
+    </aside>
+
+
+
+    <section>
+        <nav>
+            <ul>
+                <li><span id="alltypebtn">全部类型<span class="glyphicon glyphicon-chevron-down" style="font-weight: 100"></span></span></li>
+				<li><span id="showsortbtn">综合排序<span class="glyphicon glyphicon-chevron-down" style="font-weight: 100"></span></span></li>
+            </ul>
+        </nav>
+
+
+
+        <menu>
+            <ul>
+                {% for item in product_list %}
+                <li>
+                    <a href="#">
+                        <img src="{{item.productimg}}" />
+                        <article class="shoppingInfo">
+                            <h6>{{item.productlongname}}</h6>
+                            <p class="detailTag"><span>精选</span><span>{{item.pedesc}}</span></p>
+                            <span class="unit">{{item.specifics}}</span>
+                            <p class="price"><span>￥{{item.price}}</span><s><span>￥{{item.marketprice}}</span></s></p>
+                        </article>
+                    </a>
+                    <section>
+						<button ga="{{item.productid}}" class="subShopping">-</button>
+                        <span id="{{item.productid}}">
+                            {% if request.session.username %}
+                                {{ item.cart_num }}
+                                {% else %}
+                                0
+                            {% endif %}
+                        </span>
+						<button ga="{{item.productid}}" class="addShopping">+</button>
+					</section>
+                </li>
+                {% endfor %}
+            </ul>
+            <div id="typediv">
+                <div>
+                    {% for item in child_list %}
+                    <a href="/market/{{categoryid}}/{{item.childId}}/0/"><span>{{item.childName}}</span></a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="sortdiv">
+                <div>
+                    <a href="/market/{{categoryid}}/{{childcid}}/0/" class="sorta"><span>综合排序</span></a>
+                    <a href="/market/{{categoryid}}/{{childcid}}/1/" class="sorta"><span>销量排序</span></a>
+                    <a href="/market/{{categoryid}}/{{childcid}}/2/" class="sorta"><span>价格最低</span></a>
+                    <a href="/market/{{categoryid}}/{{childcid}}/3/" class="sorta"><span>价格最高</span></a>
+                </div>
+            </div>
+        </menu>
+
+
+
+    </section>
+
+
+</div>
+{% endblock base %}

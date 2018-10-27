@@ -1,0 +1,187 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block linkscript%}
+    <link rel="stylesheet" type="text/css" href="{% static 'cart/css/cart.css' %}" />
+    <script type="text/javascript" charset="utf-8" src="{% static 'cart/js/cart.js' %}" ></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("[class='addShopping']").click(function () {
+                var a = $(this).attr('ga');
+                $.ajax({
+                    url:{% url 'shop:cart_add' %},
+                    type: 'GET',
+                    data:{
+                        product_id:a,
+                    },
+                    success:function (data) {
+                        document.getElementById(a).innerHTML = data['value']
+                    }
+
+                })
+            });
+            $('.subShopping').click(function () {
+                var a = $(this).attr('ga');
+                $.ajax({
+                    url:'{% url 'shop:cart_sub' %}',
+                    type: 'GET',
+                    data:{
+                        product_id:a,
+                    },
+                    success:function (data) {
+                        if(data['value']=='0'){
+                            var m = document.getElementById(a+'li');
+                            m.parentNode.removeChild(m)
+                        }else {
+                            document.getElementById(a).innerHTML = data['value']
+                        }
+                    }
+                })
+            });
+            $('.ischose').click(function () {
+                var a = $(this).attr('goodsid');
+                $.ajax({
+                    url: '{% url 'shop:click' %}',
+                    type: 'GET',
+                    data:{
+                        product_id:a,
+                    },
+                    success:function (data) {
+                        if(data['state']=='True'){
+                            document.getElementById(a+'a').innerHTML = '√';
+                            var choose = document.getElementsByClassName('choose');
+                            for(var i =0;choose.length;i++){
+                                if(choose[i].innerHTML == ""){
+                                    document.getElementById('all').innerHTML = '';
+                                    break
+                                }else {
+                                    document.getElementById('all').innerHTML = '√';
+                                    $('#all').attr('class','True');
+                                }
+                            }
+                        }
+                        else {
+                            document.getElementById(a+'a').innerHTML = '';
+                            document.getElementById('all').innerHTML = '';
+                            $('#all').attr('class','False');
+                        }
+                    }
+                })
+            });
+            $('#all').click(function () {
+                var a = $(this).attr('class');
+                alert(a);
+                $.ajax({
+                    url: '{% url 'shop:all_click' %}',
+                    type: 'GET',
+                    data:{
+                        state:a,
+                    },
+                    success: function (data) {
+                        alert(data['state']);
+                        if(data['state']=='True'){
+                            document.getElementById('all').innerHTML = '√';
+                            $('#all').attr('class','True');
+                            var choose = document.getElementsByClassName('choose');
+                            for(var i=0; i<choose.length; i++){
+                                choose[i].innerHTML = '√'
+                            }
+                        }else {
+                            document.getElementById('all').innerHTML = '';
+                            $('#all').attr('class','False');
+                            var chose = document.getElementsByClassName('choose');
+                            for(var i=0; i<chose.length; i++){
+                                chose[i].innerHTML = ''
+                            }
+
+                        }
+                    }
+                })
+            })
+        })
+    </script>
+{% endblock linkscript%}
+
+{% block base %}
+<div id="cart">
+    <h3><b>购物车</b></h3>
+
+    <section class="full">
+		<section>
+			<ul>
+				<li>
+                    <div class="clear">
+                        <p class="infoJustify">收货人<b></b></p><p>:<span>{{ user.username }}</span></p>
+                    </div>
+                </li>
+				<li>
+                    <div class="clear">
+                        <p class="infoJustify">电话<b></b></p><p>:<span>{{ user.telephone }}</span><a class="change">修改></a></p>
+                    </div>
+                </li>
+				<li>
+                    <div class="clear"><p class="infoJustify">收货地址<b></b></p><p>:<span>{{ user.address }}</span></p>
+                    </div>
+                </li>
+			</ul>
+
+
+			<section class="bill">
+				<p>闪送超市</p>
+				<p>¥0起送,22:00前满¥30免运费</p>
+				<a>凑单专区</a>
+			</section>
+
+
+			<section class="delivery">
+				<span>收货时间</span> <span>一小时送达</span> <a>可预订></a>
+			</section>
+			<section class="delivery">
+				<span>收货备注</span> <input type="text" placeholder="可输入100字以内特殊要求内容"/>
+			</section>
+
+
+            <menu>
+				<ul>
+                    {% for item in cartslist%}
+                    <li id="{{item.productid}}li" class="menuList">
+                        <div class="confirm">
+                            <span class="ischose" goodsid="{{item.productid}}">
+                                <span id="{{item.productid}}a" class="choose">
+                                {% ifequal True item.ischose %}
+                                √
+                                {% endifequal %}
+                                </span>
+                            </span>
+                        </div>
+                        <a href="#">
+                            <img src="{{item.productimg}}"/>
+                            <p>{{item.productname}}</p>
+                            <span id="{{item.productid}}price" class="{{productprice}}">{{item.productprice}}</span>
+                        </a>
+                        <section>
+                            <button class="subShopping"  ga="{{item.productid}}">-</button>
+                            <span id="{{item.productid}}">{{item.productnum}}</span>
+                            <button class="addShopping"  ga="{{item.productid}}">+</button>
+                        </section>
+                    </li>
+                    {% endfor %}
+
+					<li class="payTheBill">
+						<div class="confirm">
+                            <span id="all" class="{{ true_Flag }}">
+                            {% ifequal True true_Flag %}
+                            √
+                            {% endifequal %}
+                            </span>
+                        </div>
+						<p><span>全选</span><span>共计:</span><span>总价</span></p>
+						<a id="ok">选好了</a>
+					</li>
+				</ul>
+			</menu>
+		</section>
+	</section>
+</div>
+
+{% endblock base %}
